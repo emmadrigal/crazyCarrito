@@ -61,6 +61,7 @@ void loop(){
   } else {
     Serial.println("Condición no considerada");
   }
+  
   Serial.println("S Izquierdo");
   Serial.println(SensorVal[0]);
   Serial.println("S Derecho");
@@ -68,4 +69,10 @@ void loop(){
   delay(1000);
 }
 
-
+/**
+ * 0:
+ * 1:
+ */
+byte sensores(){
+  
+}
