@@ -32,6 +32,31 @@ bool estadoPareAvance = 0;
 int SensorVal [3];
 int Mode;
 
+void adelante(){
+  servoDer.write(0);
+  servoIzq.write(180);
+}
+
+void atras(){
+  servoDer.write(180);
+  servoIzq.write(0);
+}
+
+void derecha(){
+  servoDer.write(0);
+  servoIzq.write(90);
+}
+
+void izquierda(){
+  servoDer.write(90);
+  servoIzq.write(180);
+}
+
+void quieto(){
+  servoDer.write(90);
+  servoIzq.write(90);
+}
+
 byte whereIsTheLine(){
   return 0;
 }
@@ -48,8 +73,7 @@ void movimiento(byte modo){
       switch(estadoZigZag){
         case 0://izquerda
           if(tiempoPasado < 2000){
-            servoDer.write(0);
-            servoIzq.write(180);
+            adelante();
           }
           else{
             estadoZigZag = 1;//gire a la derecha
@@ -59,8 +83,7 @@ void movimiento(byte modo){
         break;
         case 1://Giro derecha
           if(tiempoPasado < 500){
-            servoDer.write(0);
-            servoIzq.write(90);
+            derecha();
           }
           else{
             estadoZigZag = 2;//muevase a la derecha
@@ -70,22 +93,16 @@ void movimiento(byte modo){
         break;
         case 2://derercha
           if(tiempoPasado < 2000){
-            servoDer.write(0);
-            servoIzq.write(180);
+            adelante();
           }
           else{
             estadoZigZag = 3;//gire a la izquierda
-            //Pare
-            servoDer.write(180);
-            servoIzq.write(0);
-            //
             ultimaLlamada = millis();
           }
         break;
         case 3://Giro izquierda
           if(tiempoPasado < 500){
-            servoDer.write(90);
-            servoIzq.write(180);
+            izquierda();
           }
           else{
             estadoZigZag = 0;//muevase a la izquierda
@@ -94,13 +111,20 @@ void movimiento(byte modo){
           }
         break;
         default://No se mueva
-          servoDer.write(90);
-          servoIzq.write(90);
+          quieto();
         break;
       }
     break;
     case 3://Seguidor de Linea
-      //TODO
+      switch(whereIsTheLine()){
+        case 1:
+          adelante();
+        break;
+        default:
+          quieto();
+        break;
+        
+      }
     break;
     case 7://Dos segundos y se detiene
       if(estadoPareAvance){
@@ -171,7 +195,7 @@ void loop(){
   }else if(SensorVal[0]>512 and SensorVal[2]>512){
     Serial.println("Ni puta idea donde está la barra");
   } else {
-    Serial.println("Condición no considerada");
+    Serial.println("Que!?!?!");
   }
   Serial.println("S Izquierdo");
   Serial.println(SensorVal[0]);
