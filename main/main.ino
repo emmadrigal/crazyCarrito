@@ -1,3 +1,5 @@
+#include <Servo.h> 
+
 #define SW1 1
 #define SW2 2
 #define SW3 3
@@ -7,8 +9,152 @@
 #define S2 A1
 #define S3 A2
 
+Servo servoIzq;
+Servo servoDer;
+
+unsigned long ultimaLlamada;
+unsigned long tiempoPasado;
+
+byte estadoZigZag = 0;
+/*
+0 -> izquierda
+1 -> giro derecha
+2 -> derecha
+3 -> giro izquierda
+*/
+
+bool estadoPareAvance = 0;
+/*
+0 -> pare
+1 -> avance
+*/
+
 int SensorVal [3];
 int Mode;
+
+void adelante(){
+  servoDer.write(0);
+  servoIzq.write(180);
+}
+
+void atras(){
+  servoDer.write(180);
+  servoIzq.write(0);
+}
+
+void derecha(){
+  servoDer.write(0);
+  servoIzq.write(90);
+}
+
+void izquierda(){
+  servoDer.write(90);
+  servoIzq.write(180);
+}
+
+void quieto(){
+  servoDer.write(90);
+  servoIzq.write(90);
+}
+
+byte whereIsTheLine(){
+  return 0;
+}
+
+
+
+void movimiento(byte modo){
+  switch(modo){
+    case 0://Hacia Atrás en circulo
+      servoDer.write(180);
+      servoIzq.write(80);
+    break;
+    case 1://ZigZag
+      switch(estadoZigZag){
+        case 0://izquerda
+          if(tiempoPasado < 2000){
+            adelante();
+          }
+          else{
+            estadoZigZag = 1;//gire a la derecha
+            //
+            ultimaLlamada = millis();
+          }
+        break;
+        case 1://Giro derecha
+          if(tiempoPasado < 500){
+            derecha();
+          }
+          else{
+            estadoZigZag = 2;//muevase a la derecha
+            //
+            ultimaLlamada = millis();
+          }
+        break;
+        case 2://derercha
+          if(tiempoPasado < 2000){
+            adelante();
+          }
+          else{
+            estadoZigZag = 3;//gire a la izquierda
+            ultimaLlamada = millis();
+          }
+        break;
+        case 3://Giro izquierda
+          if(tiempoPasado < 500){
+            izquierda();
+          }
+          else{
+            estadoZigZag = 0;//muevase a la izquierda
+            //
+            ultimaLlamada = millis();
+          }
+        break;
+        default://No se mueva
+          quieto();
+        break;
+      }
+    break;
+    case 3://Seguidor de Linea
+      switch(whereIsTheLine()){
+        case 1:
+          adelante();
+        break;
+        default:
+          quieto();
+        break;
+        
+      }
+    break;
+    case 7://Dos segundos y se detiene
+      if(estadoPareAvance){
+        servoDer.write(0);
+        servoIzq.write(180); 
+        if(tiempoPasado > 2000){
+          ultimaLlamada = millis();
+          estadoPareAvance = false;
+        }
+      }
+      else{
+        servoDer.write(90);
+        servoIzq.write(90);  
+        if(tiempoPasado > 2000){
+          ultimaLlamada = millis();
+          estadoPareAvance = true;
+        }
+      }
+    break;
+    case 15://En Espera
+      servoDer.write(90);
+      servoIzq.write(90);
+    break;
+    default:
+      servoDer.write(0);
+      servoIzq.write(180);
+    break;
+    
+  }
+}
 
 void setup() {
   pinMode(S1,INPUT);
@@ -20,6 +166,10 @@ void setup() {
   pinMode(SW4,INPUT_PULLUP);
   Serial.begin(9600);   // Initialize serial communications with PC
   Mode=0;
+  
+  servoIzq.attach(9);
+  servoDer.attach(10);
+  ultimaLlamada = millis();
 }
 
 void loop(){
@@ -29,20 +179,6 @@ void loop(){
   
   for(int i=0;i<5;i++){
     Mode += digitalRead(i+1);
-  }
-  
-  switch(Mode){
-    case 0: //Avanza en circulo reversa   0 0 0 0
-      break;
-    case 1: //Zig Zag                     0 0 0 1
-      break;
-    case 2: //Sigue la línea              0 0 1 1
-      break;
-    case 3: //Avanza 2s y detiene repite  0 1 1 1
-      break;
-    default: //Espera                      1 1 1 1
-      //Serial.println("En espera"); 
-      break; 
   }
 
   //SensorVal[0]: Izq
@@ -59,13 +195,17 @@ void loop(){
   }else if(SensorVal[0]>512 and SensorVal[2]>512){
     Serial.println("Ni puta idea donde está la barra");
   } else {
-    Serial.println("Condición no considerada");
+    Serial.println("Que!?!?!");
   }
   Serial.println("S Izquierdo");
   Serial.println(SensorVal[0]);
   Serial.println("S Derecho");
   Serial.println(SensorVal[2]);
   delay(1000);
+  
+  tiempoPasado= millis() - ultimaLlamada;
+
+  movimiento(15);
 }
 
 
