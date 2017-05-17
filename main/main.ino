@@ -57,8 +57,84 @@ void quieto(){
   servoIzq.write(90);
 }
 
+/*
+ * 1    Hacia adelante
+ * 2    No hay linea
+ * 3    giro derecha 1
+ * 4    giro derecha 90
+ * 5    giro izquierda 1
+ * 6    giro izquierda 90
+ * 7    giro derecha 2
+ * 8    giro izquierda 2
+ * 9    linea perpendicular
+ * 10   linea 45 izquierda   
+ * 11   linea 45 derecha
+ */
+byte state = 2;
+byte nextState = 2;
+
 byte whereIsTheLine(){
-  return 0;
+  //Read sensors
+  SensorVal[0] = analogRead(S1);
+  SensorVal[1] = analogRead(S2);
+  SensorVal[2] = analogRead(S3);
+
+  //SensorVal[0]: Izq
+  //SensorVal[1]: -
+  //SensorVal[2]: Der
+  //0 Negro
+  //1 Blanco
+  if(SensorVal[0]<512 and SensorVal[2]<512){
+    //Serial.println("Barra en el centro");
+    nextState=1;
+  }else if(SensorVal[0]<512 and SensorVal[2]>512 ){
+    //Serial.println("Barra a la derecha");
+    nextState=2;
+  }else if(SensorVal[0]>512 and SensorVal[2]<512 ){
+    //Serial.println("Barra a la izquierda");
+    nextState=0;
+  }else if(SensorVal[0]>512 and SensorVal[2]>512){
+    //Serial.println("Ni puta idea donde está la barra");
+    nextState=3;
+  } else {
+    Serial.println("Condicion no considerada");
+  }
+  
+  switch(nextState){
+    case 0:
+      if(state==0){
+        state = 5;
+      }else if (state==1){
+        state = 7;
+      }else if (state==2){
+        state = 9;
+      }else if (state==3){
+        state = 2;
+      }
+    case 1:
+      if(state==0){
+        state = 5;
+      }else if (state==1){
+        state = 1;  
+      }else if (state==2){
+         state = 3;
+      }else if (state==3){
+        state = 2;
+      }
+    case 2:
+      if(state==0){
+        state = 9;
+      }else if (state==1){
+        state = 6;
+      }else if (state==2){
+        state = 1;
+      }else if (state==3){
+        state = 2;
+      }
+    case 3: // No habia leido la linea seguimos
+      state = 1;
+  }
+  return state;
 }
 
 
@@ -173,37 +249,11 @@ void setup() {
 }
 
 void loop(){
-  SensorVal[0] = analogRead(S1);
-  SensorVal[1] = analogRead(S2);
-  SensorVal[2] = analogRead(S3);
   
   for(int i=0;i<5;i++){
     Mode += digitalRead(i+1);
   }
-
-  //SensorVal[0]: Izq
-  //SensorVal[1]: -
-  //SensorVal[2]: Der
-  //0 Negro
-  //1 Blanco
-  if(SensorVal[0]<512 and SensorVal[2]<512){
-    Serial.println("Barra en el centro");
-  }else if(SensorVal[0]<512 and SensorVal[2]>512 ){
-    Serial.println("Barra a la derecha");
-  }else if(SensorVal[0]>512 and SensorVal[2]<512 ){
-    Serial.println("Barra a la izquierda");
-  }else if(SensorVal[0]>512 and SensorVal[2]>512){
-    Serial.println("Ni puta idea donde está la barra");
-  } else {
-    Serial.println("Que!?!?!");
-  }
-  
-  Serial.println("S Izquierdo");
-  Serial.println(SensorVal[0]);
-  Serial.println("S Derecho");
-  Serial.println(SensorVal[2]);
-  delay(1000);
-  
+    
   tiempoPasado= millis() - ultimaLlamada;
 
   movimiento(15);
