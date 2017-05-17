@@ -35,144 +35,6 @@ int Mode;
 void adelante(){
   servoDer.write(0);
   servoIzq.write(180);
-<<<<<<< HEAD
-}
-
-void atras(){
-  servoDer.write(180);
-  servoIzq.write(0);
-}
-
-void derecha(){
-  servoDer.write(0);
-  servoIzq.write(90);
-}
-
-void izquierda(){
-  servoDer.write(90);
-  servoIzq.write(180);
-}
-
-void quieto(){
-  servoDer.write(90);
-  servoIzq.write(90);
-}
-
-byte whereIsTheLine(){
-  return 0;
-}
-
-
-
-void movimiento(byte modo){
-  switch(modo){
-    case 0://Hacia Atrás en circulo
-      servoDer.write(180);
-      servoIzq.write(80);
-    break;
-    case 1://ZigZag
-      switch(estadoZigZag){
-        case 0://izquerda
-          if(tiempoPasado < 2000){
-            adelante();
-          }
-          else{
-            estadoZigZag = 1;//gire a la derecha
-            //
-            ultimaLlamada = millis();
-          }
-        break;
-        case 1://Giro derecha
-          if(tiempoPasado < 500){
-            derecha();
-          }
-          else{
-            estadoZigZag = 2;//muevase a la derecha
-            //
-            ultimaLlamada = millis();
-          }
-        break;
-        case 2://derercha
-          if(tiempoPasado < 2000){
-            adelante();
-          }
-          else{
-            estadoZigZag = 3;//gire a la izquierda
-            ultimaLlamada = millis();
-          }
-        break;
-        case 3://Giro izquierda
-          if(tiempoPasado < 500){
-            izquierda();
-          }
-          else{
-            estadoZigZag = 0;//muevase a la izquierda
-            //
-            ultimaLlamada = millis();
-          }
-        break;
-        default://No se mueva
-          quieto();
-        break;
-      }
-    break;
-    case 3://Seguidor de Linea
-      switch(whereIsTheLine()){
-        case 1:
-          adelante();
-        break;
-        default:
-          quieto();
-        break;
-        
-      }
-    break;
-    case 7://Dos segundos y se detiene
-      if(estadoPareAvance){
-        servoDer.write(0);
-        servoIzq.write(180); 
-        if(tiempoPasado > 2000){
-          ultimaLlamada = millis();
-          estadoPareAvance = false;
-        }
-      }
-      else{
-        servoDer.write(90);
-        servoIzq.write(90);  
-        if(tiempoPasado > 2000){
-          ultimaLlamada = millis();
-          estadoPareAvance = true;
-        }
-      }
-    break;
-    case 15://En Espera
-      servoDer.write(90);
-      servoIzq.write(90);
-    break;
-    default:
-      servoDer.write(0);
-      servoIzq.write(180);
-    break;
-    
-  }
-}
-
-void setup() {
-  pinMode(S1,INPUT);
-  pinMode(S2,INPUT);
-  pinMode(S3,INPUT);
-  pinMode(SW1,INPUT_PULLUP);
-  pinMode(SW2,INPUT_PULLUP);
-  pinMode(SW3,INPUT_PULLUP);
-  pinMode(SW4,INPUT_PULLUP);
-  Serial.begin(9600);   // Initialize serial communications with PC
-  Mode=0;
-  
-  servoIzq.attach(9);
-  servoDer.attach(10);
-  ultimaLlamada = millis();
-=======
->>>>>>> b1cd1892b711b0bd7ed2e957b5a3cfe794aa60f6
 }
 
 void atras(){
@@ -216,13 +78,6 @@ byte whereIsTheLine(){
   SensorVal[0] = analogRead(S1);
   SensorVal[1] = analogRead(S2);
   SensorVal[2] = analogRead(S3);
-<<<<<<< HEAD
-  
-  for(int i=0;i<5;i++){
-    Mode += digitalRead(i+1);
-  }
-=======
->>>>>>> b1cd1892b711b0bd7ed2e957b5a3cfe794aa60f6
 
   //SensorVal[0]: Izq
   //SensorVal[1]: -
@@ -242,19 +97,6 @@ byte whereIsTheLine(){
     //Serial.println("Ni puta idea donde está la barra");
     nextState=3;
   } else {
-<<<<<<< HEAD
-    Serial.println("Que!?!?!");
-  }
-  Serial.println("S Izquierdo");
-  Serial.println(SensorVal[0]);
-  Serial.println("S Derecho");
-  Serial.println(SensorVal[2]);
-  delay(1000);
-  
-  tiempoPasado= millis() - ultimaLlamada;
-
-  movimiento(15);
-=======
     Serial.println("Condicion no considerada");
   }
   
@@ -354,6 +196,36 @@ void movimiento(byte modo){
         case 1:
           adelante();
         break;
+        case 2:
+          adelante();
+        break;
+        case 3:
+          derecha();
+        break;
+        case 4:
+          derecha();
+        break;
+        case 5:
+          izquierda();
+        break;
+        case 6:
+          izquierda();
+        break;
+        case 7:
+          derecha();
+        break;
+        case 8:
+          izquierda();
+        break;
+        case 9:
+          adelante();
+        break;
+        case 10:
+          adelante();
+        break;
+        case 11:
+          adelante();
+        break;
         default:
           quieto();
         break;
@@ -388,7 +260,6 @@ void movimiento(byte modo){
     break;
     
   }
->>>>>>> b1cd1892b711b0bd7ed2e957b5a3cfe794aa60f6
 }
 
 void setup() {
