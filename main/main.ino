@@ -12,6 +12,8 @@
 Servo servoIzq;
 Servo servoDer;
 
+int SensorVal [2];
+
 unsigned long ultimaLlamada;
 unsigned long tiempoPasado;
 
@@ -29,7 +31,6 @@ bool estadoPareAvance = 0;
 1 -> avance
 */
 
-int SensorVal [3];
 int Mode;
 
 void adelante(){
@@ -57,7 +58,61 @@ void quieto(){
   servoIzq.write(90);
 }
 
+
+/*
+ * 0    Sobre linea
+ * 1    Sobre linea, linea a la derecha
+ * 2    Sobre line, linea a la izquierda
+ * 3    No hay linea
+ * 4    No hay linea, linea a la derercha
+ * 5    No hay linea, linea a la izquierda
+ * 6    Linea de frente
+ */
+byte state = 3;
+int umbral_sensor = 500;
+
 byte whereIsTheLine(){
+  switch(state){
+    case 0:
+      if((SensorVal[0] > umbral_sensor) && (SensorVal[1] < umbral_sensor) ){
+        state = 1;
+      }
+      else if((SensorVal[0] < umbral_sensor) && (SensorVal[1] > umbral_sensor) ){
+        state = 1;
+      }
+    break;
+    case 1:
+      if((SensorVal[0] < umbral_sensor) && (SensorVal[1] < umbral_sensor) ){
+        state = 0;
+      }
+    break;
+    case 2:
+      if((SensorVal[0] < umbral_sensor) && (SensorVal[1] < umbral_sensor) ){
+        state = 0;
+      }
+    break;
+    case 3:
+      if(SensorVal[0] > umbral_sensor){
+        state = 5;
+      }
+      else if(SensorVal[1] > umbral_sensor ){
+        state = 4;
+      }
+    break;
+    case 4:
+      if(SensorVal[1] < umbral_sensor ){
+        state = 0;
+      }
+    break;
+    case 5:
+      if(SensorVal[0] < umbral_sensor ){
+        state = 0;
+      }
+    break;
+    default:
+      state = 3;
+    break;
+  }
   return 0;
 }
 
@@ -66,13 +121,13 @@ byte whereIsTheLine(){
 void movimiento(byte modo){
   switch(modo){
     case 0://Hacia Atrás en circulo
-      servoDer.write(180);
-      servoIzq.write(80);
+      servoDer.write(135);
+      servoIzq.write(85);
     break;
     case 1://ZigZag
       switch(estadoZigZag){
         case 0://izquerda
-          if(tiempoPasado < 2000){
+          if(tiempoPasado < 1500){
             adelante();
           }
           else{
@@ -82,7 +137,7 @@ void movimiento(byte modo){
           }
         break;
         case 1://Giro derecha
-          if(tiempoPasado < 500){
+          if(tiempoPasado < 1000){
             derecha();
           }
           else{
@@ -92,7 +147,7 @@ void movimiento(byte modo){
           }
         break;
         case 2://derercha
-          if(tiempoPasado < 2000){
+          if(tiempoPasado < 1500){
             adelante();
           }
           else{
@@ -101,7 +156,7 @@ void movimiento(byte modo){
           }
         break;
         case 3://Giro izquierda
-          if(tiempoPasado < 500){
+          if(tiempoPasado < 1000){
             izquierda();
           }
           else{
@@ -117,13 +172,27 @@ void movimiento(byte modo){
     break;
     case 3://Seguidor de Linea
       switch(whereIsTheLine()){
-        case 1:
+        case 0:
           adelante();
+        break;
+        case 1:
+          izquierda();
+        break;
+        case 2:
+          derecha();
+        break;
+        case 3:
+          adelante();
+        break;
+        case 4:
+          derecha();
+        break;
+        case 5:
+          izquierda();
         break;
         default:
           quieto();
         break;
-        
       }
     break;
     case 7://Dos segundos y se detiene
@@ -159,7 +228,7 @@ void movimiento(byte modo){
 void setup() {
   pinMode(S1,INPUT);
   pinMode(S2,INPUT);
-  pinMode(S3,INPUT);
+  
   pinMode(SW1,INPUT_PULLUP);
   pinMode(SW2,INPUT_PULLUP);
   pinMode(SW3,INPUT_PULLUP);
@@ -175,37 +244,14 @@ void setup() {
 void loop(){
   SensorVal[0] = analogRead(S1);
   SensorVal[1] = analogRead(S2);
-  SensorVal[2] = analogRead(S3);
   
   for(int i=0;i<5;i++){
     Mode += digitalRead(i+1);
   }
-
-  //SensorVal[0]: Izq
-  //SensorVal[1]: -
-  //SensorVal[2]: Der
-  //0 Negro
-  //1 Blanco
-  if(SensorVal[0]<512 and SensorVal[2]<512){
-    Serial.println("Barra en el centro");
-  }else if(SensorVal[0]<512 and SensorVal[2]>512 ){
-    Serial.println("Barra a la derecha");
-  }else if(SensorVal[0]>512 and SensorVal[2]<512 ){
-    Serial.println("Barra a la izquierda");
-  }else if(SensorVal[0]>512 and SensorVal[2]>512){
-    Serial.println("Ni puta idea donde está la barra");
-  } else {
-    Serial.println("Que!?!?!");
-  }
-  Serial.println("S Izquierdo");
-  Serial.println(SensorVal[0]);
-  Serial.println("S Derecho");
-  Serial.println(SensorVal[2]);
-  delay(1000);
   
   tiempoPasado= millis() - ultimaLlamada;
 
-  movimiento(15);
+  movimiento(0);
 }
 
 
