@@ -1,9 +1,8 @@
 #include <Servo.h> 
 
-#define SW1 1
-#define SW2 2
-#define SW3 3
-#define SW4 4
+#define SW1 2
+#define SW2 3
+#define SW3 4
 #define SW4 5
 
 #define S1 A0
@@ -31,8 +30,6 @@ bool estadoPareAvance = 0;
 0 -> pare
 1 -> avance
 */
-
-int Mode;
 
 void adelante(){
   servoDer.write(0);
@@ -236,7 +233,6 @@ void setup() {
   pinMode(SW3,INPUT_PULLUP);
   pinMode(SW4,INPUT_PULLUP);
   Serial.begin(9600);   // Initialize serial communications with PC
-  Mode=0;
   
   servoIzq.attach(9);
   servoDer.attach(10);
@@ -248,22 +244,11 @@ void loop(){
   SensorVal[1] = analogRead(S3);
   whereIsTheLine();
   
-  for(int i=0;i<5;i++){
-    Mode += digitalRead(i+1);
-  }
-  
   tiempoPasado= millis() - ultimaLlamada;
 
-  movimiento(3);
+  int modo = 8*digitalRead(SW4) + 4*digitalRead(SW3) + 2*digitalRead(SW2) + digitalRead(SW1);
 
-/*
-  Serial.println(state);
-  Serial.print("\t");
-  Serial.println(SensorVal[0]);
-  Serial.print("\t");
-  Serial.println(SensorVal[1]);
-  delay(500);
-  */
+  movimiento(modo);
 }
 
 
