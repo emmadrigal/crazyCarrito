@@ -5,6 +5,7 @@
 #define SW3 3
 #define SW4 4
 #define SW4 5
+
 #define S1 A0
 #define S2 A1
 #define S3 A2
@@ -69,43 +70,44 @@ void quieto(){
  * 6    Linea de frente
  */
 byte state = 3;
-int umbral_sensor = 500;
+int umbral_sensor = 300;
 
-byte whereIsTheLine(){
+void whereIsTheLine(){
   switch(state){
+    //TODO cambiar lo negado
     case 0:
-      if((SensorVal[0] > umbral_sensor) && (SensorVal[1] < umbral_sensor) ){
-        state = 1;
+      if(!(SensorVal[0] > umbral_sensor) && !(SensorVal[1] < umbral_sensor) ){
+        state = 2;
       }
-      else if((SensorVal[0] < umbral_sensor) && (SensorVal[1] > umbral_sensor) ){
+      else if(!(SensorVal[0] < umbral_sensor) && !(SensorVal[1] > umbral_sensor) ){
         state = 1;
       }
     break;
     case 1:
-      if((SensorVal[0] < umbral_sensor) && (SensorVal[1] < umbral_sensor) ){
+      if(!(SensorVal[0] < umbral_sensor) && !(SensorVal[1] < umbral_sensor) ){
         state = 0;
       }
     break;
     case 2:
-      if((SensorVal[0] < umbral_sensor) && (SensorVal[1] < umbral_sensor) ){
+      if(!(SensorVal[0] < umbral_sensor) && !(SensorVal[1] < umbral_sensor) ){
         state = 0;
       }
     break;
     case 3:
-      if(SensorVal[0] > umbral_sensor){
+      if(SensorVal[0] < umbral_sensor){
         state = 5;
       }
-      else if(SensorVal[1] > umbral_sensor ){
+      else if(SensorVal[1] < umbral_sensor ){
         state = 4;
       }
     break;
     case 4:
-      if(SensorVal[1] < umbral_sensor ){
+      if(SensorVal[1] > umbral_sensor ){
         state = 0;
       }
     break;
     case 5:
-      if(SensorVal[0] < umbral_sensor ){
+      if(SensorVal[0] > umbral_sensor ){
         state = 0;
       }
     break;
@@ -113,7 +115,6 @@ byte whereIsTheLine(){
       state = 3;
     break;
   }
-  return 0;
 }
 
 
@@ -171,7 +172,7 @@ void movimiento(byte modo){
       }
     break;
     case 3://Seguidor de Linea
-      switch(whereIsTheLine()){
+      switch(state){
         case 0:
           adelante();
         break;
@@ -228,6 +229,7 @@ void movimiento(byte modo){
 void setup() {
   pinMode(S1,INPUT);
   pinMode(S2,INPUT);
+  pinMode(S3,INPUT);
   
   pinMode(SW1,INPUT_PULLUP);
   pinMode(SW2,INPUT_PULLUP);
@@ -242,8 +244,9 @@ void setup() {
 }
 
 void loop(){
-  SensorVal[0] = analogRead(S1);
-  SensorVal[1] = analogRead(S2);
+  SensorVal[0] = analogRead(S2);
+  SensorVal[1] = analogRead(S3);
+  whereIsTheLine();
   
   for(int i=0;i<5;i++){
     Mode += digitalRead(i+1);
@@ -251,7 +254,16 @@ void loop(){
   
   tiempoPasado= millis() - ultimaLlamada;
 
-  movimiento(0);
+  movimiento(3);
+
+/*
+  Serial.println(state);
+  Serial.print("\t");
+  Serial.println(SensorVal[0]);
+  Serial.print("\t");
+  Serial.println(SensorVal[1]);
+  delay(500);
+  */
 }
 
 
